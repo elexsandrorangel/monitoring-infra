@@ -1,0 +1,54 @@
+---
+- name: Install Dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - adduser
+    - libfontconfig1
+    - musl
+  become: yes
+
+- name: Download Grafana Package
+  get_url:
+    url: "https://dl.grafana.com/grafana/release/{{ grafana_version }}/grafana_{{ grafana_version }}_{{ grafana_minor }}_linux_amd64.deb"
+    dest: "/tmp/grafana_{{ grafana_version }}_{{ grafana_minor }}_linux_amd64.deb"
+    mode: '0644'
+  become: yes
+
+- name: Install Grafana Package
+  apt:
+    deb: "/tmp/grafana_{{ grafana_version }}_{{ grafana_minor }}_linux_amd64.deb"
+  become: yes
+
+- name: Enable Gzip Compression in Grafana
+  community.general.ini_file:
+    path: /etc/grafana/grafana.ini
+    section: server
+    option: enable_gzip
+    value: "true"
+    state: present
+
+- name: Configure Grafana PostgreSQL database (only [database] section)
+  become: yes
+  community.general.ini_file:
+    path: /etc/grafana/grafana.ini
+    section: database
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    state: present
+    no_extra_spaces: false
+  loop:
+    - { option: "type", value: "postgres" }
+    - { option: "host", value: "{{ grafana_db_host }}" }
+    - { option: "name", value: "{{ grafana_db_name }}" }
+    - { option: "user", value: "{{ grafana_db_user }}" }
+    - { option: "password", value: "{{ grafana_db_password }}" }
+  no_log: true
+
+- name: Ensure Grafana is started and enabled
+  become: yes
+  systemd:
+    name: grafana-server
+    state: restarted
+    enabled: yes

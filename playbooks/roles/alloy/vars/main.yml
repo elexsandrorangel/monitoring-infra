@@ -1,0 +1,3 @@
+---
+alloy_version: "1.12.0"
+prometheus_server: "https://prometheus.example.com"

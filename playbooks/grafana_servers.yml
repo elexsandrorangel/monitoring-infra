@@ -1,0 +1,16 @@
+---
+- name: Configure Grafana Servers
+  hosts: grafana_servers
+  become: yes
+  roles:
+    - role: grafana_server
+      vars:
+        grafana_db_host: "127.0.0.1:5432"
+        grafana_db_name: "grafana"
+        grafana_db_user: "grafana_user"
+        
+  handlers:
+  - name: Restart Grafana
+    ansible.builtin.service:
+      name: grafana-server
+      state: restarted

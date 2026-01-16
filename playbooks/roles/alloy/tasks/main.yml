@@ -1,0 +1,28 @@
+---
+- name: Install and configure Alloy
+  ansible.builtin.include_role:
+    name: grafana.grafana.alloy
+  vars:
+    alloy_version: "{{ alloy_version }}"
+
+    #  This opens http://VM_IP:12345/metrics
+    alloy_env_file_vars:
+      CUSTOM_ARGS: --server.http.listen-addr=0.0.0.0:12345
+
+    alloy_config: |
+      prometheus.exporter.unix "node" {}
+      
+      prometheus.scrape "node" {
+        targets    = prometheus.exporter.unix.node.targets
+        forward_to = [prometheus.remote_write.prom.receiver]
+      }
+
+      prometheus.remote_write "prom" {
+        endpoint {
+          url = "{{ prometheus_server }}/api/v1/write"
+        }
+
+        external_labels = {
+          host = "{{ inventory_hostname }}",
+        }
+      }

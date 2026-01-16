@@ -1,0 +1,51 @@
+---
+- name: Update all packages on target hosts
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Upgrade all packages (Debian-based)
+      apt:
+        upgrade: dist
+      when: ansible_os_family == "Debian"
+
+    - name: Update package cache (RedHat-based)
+      yum:
+        update_cache: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Upgrade all packages (RedHat-based)
+      yum:
+        name: '*'
+        state: latest
+      when: ansible_os_family == "RedHat"
+    - name: Reboot the server if a kernel update was installed
+      reboot:
+        msg: "Rebooting after kernel update"
+        connect_timeout: 50
+        reboot_timeout: 600
+      when: ansible_facts.packages['kernel'] is defined and
+            ansible_facts.packages['kernel'][0].version is version(ansible_facts.kernel.version, '>')
+      register: reboot_result
+    - name: Wait for the server to come back online
+      wait_for_connection:
+        delay: 10
+        timeout: 300
+      when: reboot_result is defined and reboot_result.changed
+  handlers:
+    - name: Notify about successful update
+      debug:
+        msg: "All packages have been successfully updated."
+    - name: Notify about reboot
+      debug:
+        msg: "The server has been rebooted due to kernel update."
+    - name: Notify about no reboot needed
+      debug:
+        msg: "No reboot was necessary after the update."
+  post_tasks:
+    - name: Trigger appropriate notification based on reboot status
+      include_tasks: notify.yml

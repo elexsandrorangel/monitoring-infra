@@ -1,0 +1,12 @@
+---
+- name: Install Prometheus Server
+  hosts: prometheus
+  become: true
+  roles:
+    - role: prometheus
+      vars:
+        prometheus_version: "2.52.0"
+        prometheus_user: prometheus
+        prometheus_dir: /etc/prometheus
+        prometheus_data_dir: /var/lib/prometheus
+      

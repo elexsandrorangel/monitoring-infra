@@ -1,0 +1,6 @@
+---
+grafana_version: "12.3.1"
+grafana_minor: "20271043721"
+grafana_db_host: "127.0.0.1:5432"
+grafana_db_name: "grafana"
+grafana_db_user: "grafana_user"

@@ -1,0 +1,6 @@
+---
+- name: Install Prometheus Server
+  include_tasks: install-prometheus.yml
+
+- name: Configure Prometheus to scrape Alloy VMs
+  include_tasks: configure-alloy-prometheus.yml

@@ -1,0 +1,17 @@
+---
+- name: Notify about update and reboot status
+  block:
+    - name: Notify about successful update
+      debug:
+        msg: "All packages have been successfully updated."
+      when: not reboot_result is defined or not reboot_result.changed
+
+    - name: Notify about reboot
+      debug:
+        msg: "The server has been rebooted due to kernel update."
+      when: reboot_result is defined and reboot_result.changed
+
+    - name: Notify about no reboot needed
+      debug:
+        msg: "No reboot was necessary after the update."
+      when: reboot_result is defined and not reboot_result.changed
